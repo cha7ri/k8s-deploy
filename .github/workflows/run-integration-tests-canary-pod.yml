@@ -92,6 +92,18 @@ jobs:
               python test/integration/k8s-deploy-test.py namespace=${{ env.NAMESPACE }} kind=Deployment name=nginx-deployment containerName=nginx:1.14.2 labels=app:nginx,workflow:actions.github.com-k8s-deploy,workflowFriendlyName:Minikube_Integration_Tests_-_canary_pod selectorLabels=app:nginx
               python test/integration/k8s-deploy-test.py namespace=${{ env.NAMESPACE }} kind=Service name=nginx-service labels=workflow:actions.github.com-k8s-deploy,workflowFriendlyName:Minikube_Integration_Tests_-_canary_pod selectorLabels=app:nginx
 
+         - name: Executing promote action for pod - should fail
+           uses: ./
+           with:
+              namespace: ${{ env.NAMESPACE }}
+              images: nginx:1.14.2
+              manifests: |
+                 test/integration/manifests/test-fail-promote.yml
+              strategy: canary
+              percentage: 50
+              traffic-split-method: pod
+              action: promote
+
          - name: Executing second deploy action for pod with new tag
            uses: ./
            with:
