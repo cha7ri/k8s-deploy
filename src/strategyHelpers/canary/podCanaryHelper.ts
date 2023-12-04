@@ -1,13 +1,16 @@
-import {Kubectl} from '../../types/kubectl'
+import { Kubectl } from '../../types/kubectl'
 import * as core from '@actions/core'
 import * as fs from 'fs'
 import * as yaml from 'js-yaml'
 
 import * as fileHelper from '../../utilities/fileUtils'
 import * as canaryDeploymentHelper from './canaryHelper'
-import {isDeploymentEntity} from '../../types/kubernetesTypes'
-import {getReplicaCount} from '../../utilities/manifestUpdateUtils'
-import {DeployResult} from '../../types/deployResult'
+import { isDeploymentEntity } from '../../types/kubernetesTypes'
+import { getReplicaCount } from '../../utilities/manifestUpdateUtils'
+import { DeployResult } from '../../types/deployResult'
+import {
+   checkForErrors
+} from '../../utilities/kubectlUtils'
 
 export async function deployPodCanary(
    filePaths: string[],
@@ -15,7 +18,7 @@ export async function deployPodCanary(
    onlyDeployStable: boolean = false
 ): Promise<DeployResult> {
    const newObjectsList = []
-   const percentage = parseInt(core.getInput('percentage', {required: true}))
+   const percentage = parseInt(core.getInput('percentage', { required: true }))
 
    if (percentage < 0 || percentage > 100)
       throw Error('Percentage must be between 0 and 100')
@@ -73,7 +76,8 @@ export async function deployPodCanary(
    const forceDeployment = core.getInput('force').toLowerCase() === 'true'
 
    const execResult = await kubectl.apply(manifestFiles, forceDeployment)
-   return {execResult, manifestFiles}
+   checkForErrors([execResult])
+   return { execResult, manifestFiles }
 }
 
 export function calculateReplicaCountForCanary(
